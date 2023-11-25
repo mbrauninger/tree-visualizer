@@ -1,5 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Queue } from "queue-typescript";
+import Grid from "@mui/material/Grid";
+import  Table from "@mui/material/Table";
 
 interface Node {
   value: number;
@@ -16,13 +18,46 @@ interface Step {
 }
 
 const BinaryTree = () => {
-  const DISPLAY_WIDTH = 300;
-  const DISPLAY_HEIGHT = 450;
-  const BASE_X_OFFSET = 50;
-  const Y_OFFSET = 50;
-  const NODE_RADIUS = 10;
+  const CANVAS_WIDTH_PERCENTAGE = 90; // Set your desired width percentage
+  const CANVAS_HEIGHT_PERCENTAGE = 90; // Set your desired height percentage
+  const DISPLAY_WIDTH = window.innerWidth * CANVAS_WIDTH_PERCENTAGE / 100;
+  const DISPLAY_HEIGHT = window.innerHeight * CANVAS_HEIGHT_PERCENTAGE / 100;
+  console.log(DISPLAY_HEIGHT)
+  const DEFAULT_RADIUS = 10;
+  const DEFAULT_NUM_NODES = 15
+  const [nodeRadius, setNodeRadius] = useState(DEFAULT_RADIUS);
+  const [numNodes, setNumNodes] = useState(DEFAULT_NUM_NODES);
 
-  const generateTree = (size: number, initialX: number, initialY: number) => {
+  function calculateBaseXOffset() {
+    const numLevels = Math.floor(Math.log2(numNodes));
+
+    let coefficient = 0;
+    let percentageOfScreen = 1;
+    for (let i = 0; i < numLevels; i++) {
+        coefficient += percentageOfScreen;
+        percentageOfScreen /= 2;
+    }
+    return (DISPLAY_WIDTH - 20 - nodeRadius) / 2 / coefficient;
+  }
+
+  function calculateBottomWidth(radius: number) {
+    const numLevels = Math.floor(Math.log2(numNodes));
+    return Math.pow(2, numLevels) * radius * 2;
+  }
+
+  const [baseXOffset, setBaseXOffset] = useState(calculateBaseXOffset());
+  useEffect(() => {
+    let currentRadius = DEFAULT_RADIUS;
+    while (calculateBottomWidth(currentRadius) > DISPLAY_WIDTH - 20 - nodeRadius) {
+        currentRadius -= 1;
+    }
+    setNodeRadius(currentRadius);
+    setBaseXOffset(calculateBaseXOffset())
+  }, [numNodes])
+
+  const generateTree = (size: number) => {
+    const numLevels = Math.floor(Math.log2(numNodes));
+    const yOffset = (DISPLAY_HEIGHT - 10) / (numLevels + 1)
     let i = 2;
     const head = {
       value: 1,
@@ -30,10 +65,11 @@ const BinaryTree = () => {
       left: null,
       right: null,
       x: DISPLAY_WIDTH / 2,
-      y: DISPLAY_HEIGHT / 5,
+      y: 25,
     };
     const queue = new Queue<Node>(head);
-    let xOffset = BASE_X_OFFSET;
+    let xOffset = baseXOffset;
+    console.log(xOffset)
     while (i < size) {
       const current = queue.dequeue();
       current.left = {
@@ -42,7 +78,7 @@ const BinaryTree = () => {
         left: null,
         right: null,
         x: current.x - xOffset,
-        y: current.y + Y_OFFSET,
+        y: current.y + yOffset,
       };
       current.right = {
         value: i + 1,
@@ -50,7 +86,7 @@ const BinaryTree = () => {
         left: null,
         right: null,
         x: current.x + xOffset,
-        y: current.y + Y_OFFSET,
+        y: current.y + yOffset,
       };
       queue.enqueue(current.left);
       queue.enqueue(current.right);
@@ -65,8 +101,19 @@ const BinaryTree = () => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [traversal, setTraversal] = useState<Step[]>([]);
   const [tree, setTree] = useState<Node | null>(
-    generateTree(15, DISPLAY_WIDTH / 2, DISPLAY_HEIGHT / 5),
+    generateTree(DEFAULT_NUM_NODES)
   );
+  const [selectedOption, setSelectedOption] = useState('inOrder'); // Default option
+
+  useEffect(() => {
+    if (selectedOption === 'inOrder') {
+        const x: Step[] = []; inOrderTraverse(tree, x); setTraversal(x)
+    } else if (selectedOption === 'preOrder') {
+        const x: Step[] = []; preOrderTraverse(tree, x); setTraversal(x)
+    } else if (selectedOption === 'postOrder') {
+        const x: Step[] = []; postOrderTraverse(tree, x); setTraversal(x)
+    }
+  }, [selectedOption, tree])
 
   useEffect(() => {
     if (!canvasRef.current || !tree) return;
@@ -87,16 +134,25 @@ const BinaryTree = () => {
 
     const drawNode = (node: Node, x: number, y: number, color: string) => {
       ctx.beginPath();
-      ctx.arc(x, y, NODE_RADIUS, 0, 2 * Math.PI);
+      ctx.arc(x, y, nodeRadius, 0, 2 * Math.PI);
       ctx.stroke();
+      ctx.font = `${nodeRadius}px Verdana`
       ctx.fillStyle = color;
       ctx.fill();
-      ctx.fillStyle = "black"; // Reset fill style
-      ctx.fillText(
-        node.value.toString(),
-        x - NODE_RADIUS / 5,
-        y + NODE_RADIUS / 5,
-      );
+      let xTextOffset = 0;
+      if (node.value < 10) {
+        xTextOffset = x - 4 * nodeRadius / 15;
+      } else if (node.value < 100) {
+        xTextOffset = x - 7 * nodeRadius / 12;
+      }
+      if (nodeRadius > 2) {
+          ctx.fillStyle = "black"; // Reset fill style
+          ctx.fillText(
+            node.value.toString(),
+            xTextOffset,
+            y + nodeRadius / 3,
+          );
+      }
     };
 
     const drawTree = (node: Node | null) => {
@@ -114,16 +170,16 @@ const BinaryTree = () => {
       if (node.left) {
         drawTree(node.left);
         ctx.beginPath();
-        ctx.moveTo(node.x, node.y + NODE_RADIUS);
-        ctx.lineTo(node.left.x, node.left.y - NODE_RADIUS);
+        ctx.moveTo(node.x, node.y + nodeRadius);
+        ctx.lineTo(node.left.x, node.left.y - 0.25 - nodeRadius);
         ctx.stroke();
       }
 
       if (node.right) {
         drawTree(node.right);
         ctx.beginPath();
-        ctx.moveTo(node.x, node.y + NODE_RADIUS);
-        ctx.lineTo(node.right.x, node.right.y - NODE_RADIUS);
+        ctx.moveTo(node.x, node.y + nodeRadius);
+        ctx.lineTo(node.right.x, node.right.y - 0.25 - nodeRadius);
         ctx.stroke();
       }
     };
@@ -191,7 +247,7 @@ const BinaryTree = () => {
     return null;
   };
 
-  const animate = async () => {
+  const animate = async (traversal: Step[]) => {
     for (const step of traversal) {
       if (tree) {
         setTree((prevTree) => {
@@ -200,8 +256,15 @@ const BinaryTree = () => {
           return currentTree; // Return the updated state
         });
       }
-      await delay(500);
+      await delay(100);
     }
+  };
+
+  const handleInput = (event: any) => {
+    const inputValue = event.target.value;
+    // Convert the input value to a number using parseInt or parseFloat
+    const numericValue = parseInt(inputValue, 10); // Use parseFloat if dealing with decimal numbers
+    setNumNodes(numericValue); // Set to an empty string if conversion fails
   };
 
   return (
@@ -213,31 +276,72 @@ const BinaryTree = () => {
         marginTop: "20px",
       }}
     >
-      <button
-        onClick={() => {
-          const x: Step[] = [];
-          postOrderTraverse(tree, x);
-          setTraversal(x);
-        }}
-      >
-        Set
-      </button>
-      <button
-        onClick={() => {
-          animate();
-        }}
-      >
-        Start
-      </button>
       <canvas
         ref={canvasRef}
         style={{
-          width: DISPLAY_WIDTH,
-          height: DISPLAY_HEIGHT,
+            width: `${CANVAS_WIDTH_PERCENTAGE}%`,
+            height: `${CANVAS_HEIGHT_PERCENTAGE}vh`,
           backgroundColor: "lightblue",
           marginTop: "10px",
         }}
       />
+      <button
+        onClick={() => {
+            setTree(generateTree(numNodes))
+            const x: Step[] = [];
+          postOrderTraverse(tree, x);
+          setTraversal(x);
+          animate(traversal);
+        }}
+      >
+        Start
+      </button>
+      <button
+        onClick={() => {
+            setTree(generateTree(numNodes));
+        }}
+      >
+        Generate Tree
+      </button>
+      <div>
+        <label>
+          <input
+            type="radio"
+            value="inOrder"
+            checked={selectedOption === 'inOrder'}
+            onChange={() => setSelectedOption('inOrder')}
+          />
+          In-Order
+        </label>
+        <label>
+          <input
+            type="radio"
+            value="postOrder"
+            checked={selectedOption === 'postOrder'}
+            onChange={() => setSelectedOption('postOrder')}
+          />
+          Pre-Order
+        </label>
+        <label>
+          <input
+            type="radio"
+            value="preOrder"
+            checked={selectedOption === 'preOrder'}
+            onChange={() => setSelectedOption('preOrder')}
+          />
+          Post-Order
+        </label>
+      </div>
+      <div>
+        <label>
+          Node Count:
+          <input
+            type="number"
+            value={numNodes}
+            onChange={handleInput}
+          />
+        </label>
+      </div>
     </div>
   );
 };
