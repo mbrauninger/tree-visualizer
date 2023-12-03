@@ -1,12 +1,12 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef } from "react";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
 import TableCell from "@mui/material/TableCell";
 import TableRow from "@mui/material/TableRow";
 import { TableContainer } from "@mui/material";
-import TableHead from '@mui/material/TableHead';
+import TableHead from "@mui/material/TableHead";
 import Paper from "@mui/material/Paper";
-import { Step } from './BinaryTree';
+import { Step } from "./BinaryTree";
 
 interface ScrollableTableProps {
   data: Step[];
@@ -23,7 +23,16 @@ const ScrollableTable: React.FC<ScrollableTableProps> = ({ data }) => {
   }, [data]);
 
   return (
-    <TableContainer component={Paper} style={{ maxHeight: "200px", width: '150px', overflowY: "auto", marginLeft: "10px" }} ref={tableRef}>
+    <TableContainer
+      component={Paper}
+      style={{
+        maxHeight: "200px",
+        width: "150px",
+        overflowY: "auto",
+        marginLeft: "10px",
+      }}
+      ref={tableRef}
+    >
       <Table>
         <TableHead>
           <TableRow>
