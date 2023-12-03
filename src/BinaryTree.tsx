@@ -122,6 +122,7 @@ const BinaryTree = () => {
       if (!node) {
         return result;
       }
+      result.push({ state: "visited", value: node.value });
       result.push({ state: "processed", value: node.value });
       helper(node.left, result);
       helper(node.right, result);
@@ -213,6 +214,15 @@ const BinaryTree = () => {
     setFinished(false);
   };
 
+  const handleTraversalChange = (traversalFunc: Function) => {
+    setListedTraversal([]);
+    setTraversalStep(0);
+    setTree(generateTree(numNodes));
+    setTraversal(traversalFunc(tree));
+    setPlaying(false);
+    setFinished(true);
+  };
+
   useEffect(() => {
     if (!canvasRef.current || !tree) return;
 
@@ -296,13 +306,14 @@ const BinaryTree = () => {
 
   useEffect(() => {
     if (selectedOption === "inOrder") {
+        handleTraversalChange(inOrderTraverse)
       setTraversal(inOrderTraverse(tree));
     } else if (selectedOption === "preOrder") {
-      setTraversal(preOrderTraverse(tree));
+        handleTraversalChange(preOrderTraverse)
     } else if (selectedOption === "postOrder") {
-      setTraversal(postOrderTraverse(tree));
+        handleTraversalChange(postOrderTraverse)
     }
-  }, [selectedOption, tree]);
+  }, [selectedOption]);
 
   // Performs one step to avoid the appearance of delay
   useEffect(() => {
