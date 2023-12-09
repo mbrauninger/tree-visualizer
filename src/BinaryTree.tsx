@@ -25,7 +25,7 @@ const BinaryTree = () => {
   const DISPLAY_WIDTH = (window.innerWidth * CANVAS_WIDTH_PERCENTAGE) / 100;
   const DISPLAY_HEIGHT = (window.innerHeight * CANVAS_HEIGHT_PERCENTAGE) / 100;
   const DEFAULT_RADIUS = 5;
-  const DEFAULT_NUM_NODES = 35;
+  const DEFAULT_NUM_NODES = 200;
   const [nodeRadius, setNodeRadius] = useState(DEFAULT_RADIUS);
   const [tempNumNodes, setTempNumNodes] = useState(DEFAULT_NUM_NODES);
   const [numNodes, setNumNodes] = useState(DEFAULT_NUM_NODES);
@@ -119,6 +119,10 @@ const BinaryTree = () => {
       return distance < 2 * nodeRadius + 2 * nodeBorder;
     }
 
+    function isInWidth(node: Node) {
+        return node.x - nodeRadius > 0 && node.x + nodeRadius < DISPLAY_WIDTH
+    }
+
     const head = {
       value: 1,
       state: "clean",
@@ -138,7 +142,7 @@ const BinaryTree = () => {
     }
     let xOffset = 70;
     let i = 2;
-    while (i <= size) {
+    while (i <= size && leafNodes.length > 0) {
       const index = randomIntFromInterval(0, leafNodes.length - 1);
       const currentNode = leafNodes[index];
       if (currentNode.left && currentNode.right) {
@@ -165,7 +169,8 @@ const BinaryTree = () => {
         if (
           currentNode.left &&
           currentNode.y + yOffset + 2 * nodeRadius < DISPLAY_HEIGHT &&
-          !checkOverlap(potentialNode)
+          !checkOverlap(potentialNode) &&
+          isInWidth(potentialNode)
         ) {
           currentNode.right = potentialNode;
           leafNodes.push(currentNode.right);
@@ -180,7 +185,8 @@ const BinaryTree = () => {
         if (
           currentNode.right &&
           currentNode.y + yOffset + 2 * nodeRadius < DISPLAY_HEIGHT &&
-          !checkOverlap(potentialNode)
+          !checkOverlap(potentialNode) &&
+          isInWidth(potentialNode)
         ) {
           currentNode.left = potentialNode;
           leafNodes.push(currentNode.left);
@@ -196,7 +202,8 @@ const BinaryTree = () => {
         if (
           currentNode.right &&
           currentNode.y + yOffset + 2 * nodeRadius < DISPLAY_HEIGHT &&
-          !checkOverlap(potentialNode)
+          !checkOverlap(potentialNode) &&
+          isInWidth(potentialNode)
         ) {
           currentNode.left = potentialNode;
           leafNodes.push(currentNode.left);
@@ -211,7 +218,8 @@ const BinaryTree = () => {
         if (
           currentNode.left &&
           currentNode.y + yOffset + 2 * nodeRadius < DISPLAY_HEIGHT &&
-          !checkOverlap(potentialNode)
+          !checkOverlap(potentialNode) &&
+          isInWidth(potentialNode)
         ) {
           currentNode.right = potentialNode;
           leafNodes.push(currentNode.right);
@@ -221,18 +229,22 @@ const BinaryTree = () => {
           continue;
         }
       }
+
+      let setNode = false;
       if (Math.random() > 0.5) {
         potentialNode.x =
           currentNode.x -
           xOffset / determineHeight(currentNode.y + yOffset, yOffset);
         if (
           currentNode.y + yOffset + 2 * nodeRadius < DISPLAY_HEIGHT &&
-          !checkOverlap(potentialNode)
+          !checkOverlap(potentialNode) &&
+          isInWidth(potentialNode)
         ) {
           currentNode.left = potentialNode;
           leafNodes.push(currentNode.left);
           allNodes.push(currentNode.left);
           i += 1;
+          setNode = true;
         }
       } else {
         potentialNode.x =
@@ -240,12 +252,18 @@ const BinaryTree = () => {
           xOffset / determineHeight(currentNode.y + yOffset, yOffset);
         if (
           currentNode.y + yOffset + 2 * nodeRadius < DISPLAY_HEIGHT &&
-          !checkOverlap(potentialNode)
+          !checkOverlap(potentialNode) &&
+          isInWidth(potentialNode)
         ) {
           currentNode.right = potentialNode;
           leafNodes.push(currentNode.right);
           allNodes.push(currentNode.right);
           i += 1;
+          setNode = true;
+        }
+        if (!setNode) {
+            leafNodes.splice(index, 1)
+            if (leafNodes.length === 0) console.log(`Only could fit ${i} nodes in the screen`)
         }
       }
     }
@@ -345,10 +363,18 @@ const BinaryTree = () => {
       setFinished(true);
       return;
     }
-    setListedTraversal((prevListed) => [
-      ...prevListed,
-      traversal[traversalStep],
-    ]);
+    if (listedTraversal.length < 30) {
+        setListedTraversal((prevListed) => [
+          ...prevListed,
+          traversal[traversalStep],
+        ]);
+    } else {
+        setListedTraversal((prevListed) => [
+            ...prevListed.slice(1),
+            traversal[traversalStep],
+          ]);
+    }
+
     setTree((prevTree) => {
       const currentTree = JSON.parse(JSON.stringify(prevTree));
       updateTreeByValue(
@@ -415,6 +441,8 @@ const BinaryTree = () => {
         xTextOffset = x - (4 * nodeRadius) / 15;
       } else if (node.value < 100) {
         xTextOffset = x - (7 * nodeRadius) / 12;
+      } else {
+        xTextOffset = x - (11 * nodeRadius) / 12;
       }
       if (nodeRadius > 2) {
         ctx.fillStyle = "black"; // Reset fill style
@@ -497,7 +525,7 @@ const BinaryTree = () => {
       if (playing) {
         performStep();
       }
-    }, 100);
+    }, 10);
 
     return () => clearInterval(intervalId);
   }, [playing, traversalStep]);
