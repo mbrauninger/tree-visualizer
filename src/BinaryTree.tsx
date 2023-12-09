@@ -120,7 +120,7 @@ const BinaryTree = () => {
     }
 
     function isInWidth(node: Node) {
-        return node.x - nodeRadius > 0 && node.x + nodeRadius < DISPLAY_WIDTH
+      return node.x - nodeRadius > 0 && node.x + nodeRadius < DISPLAY_WIDTH;
     }
 
     const head = {
@@ -262,8 +262,9 @@ const BinaryTree = () => {
           setNode = true;
         }
         if (!setNode) {
-            leafNodes.splice(index, 1)
-            if (leafNodes.length === 0) console.log(`Only could fit ${i} nodes in the screen`)
+          leafNodes.splice(index, 1);
+          if (leafNodes.length === 0)
+            console.log(`Only could fit ${i} nodes in the screen`);
         }
       }
     }
@@ -278,6 +279,34 @@ const BinaryTree = () => {
   );
   const [savedTree, setSavedTree] = useState<Node | null>(tree);
   const [selectedOption, setSelectedOption] = useState("inOrder"); // Default option
+
+  const bfs = (node: Node | null | undefined) => {
+    const result: Step[] = [];
+    if (!node) {
+      return result;
+    }
+    const nodes = [node];
+    result.push({ state: "visited", value: node.value });
+    while (nodes.length > 0) {
+      const nodesAtLevel: Node[] = [];
+      while (nodes.length > 0) {
+        const currentNode = nodes.splice(0, 1)[0];
+        if (!currentNode) continue;
+        result.push({ state: "processed", value: currentNode.value });
+        if (currentNode.left) {
+          nodesAtLevel.push(currentNode.left);
+        }
+        if (currentNode.right) {
+          nodesAtLevel.push(currentNode.right);
+        }
+      }
+      for (const node of nodesAtLevel) {
+        nodes.push(node);
+        result.push({ state: "visited", value: node.value });
+      }
+    }
+    return result;
+  };
 
   const inOrderTraverse = (node: Node | null | undefined) => {
     const helper = (node: Node | null | undefined, result: Step[]) => {
@@ -364,15 +393,15 @@ const BinaryTree = () => {
       return;
     }
     if (listedTraversal.length < 30) {
-        setListedTraversal((prevListed) => [
-          ...prevListed,
-          traversal[traversalStep],
-        ]);
+      setListedTraversal((prevListed) => [
+        ...prevListed,
+        traversal[traversalStep],
+      ]);
     } else {
-        setListedTraversal((prevListed) => [
-            ...prevListed.slice(1),
-            traversal[traversalStep],
-          ]);
+      setListedTraversal((prevListed) => [
+        ...prevListed.slice(1),
+        traversal[traversalStep],
+      ]);
     }
 
     setTree((prevTree) => {
@@ -510,6 +539,8 @@ const BinaryTree = () => {
       handleTraversalChange(preOrderTraverse);
     } else if (selectedOption === "postOrder") {
       handleTraversalChange(postOrderTraverse);
+    } else if (selectedOption === "bfs") {
+      handleTraversalChange(bfs);
     }
   }, [selectedOption]);
 
@@ -576,6 +607,7 @@ const BinaryTree = () => {
             <MenuItem value={"inOrder"}>inOrder</MenuItem>
             <MenuItem value={"preOrder"}>preOrder</MenuItem>
             <MenuItem value={"postOrder"}>postOrder</MenuItem>
+            <MenuItem value={"bfs"}>bfs</MenuItem>
           </Select>
           <Button
             style={{ marginRight: 5, height: 15, fontSize: 10 }}
