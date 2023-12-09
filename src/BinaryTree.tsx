@@ -4,6 +4,7 @@ import Select from "@mui/material/Select";
 import MenuItem from "@mui/material/MenuItem";
 import Button from "@mui/material/Button";
 import ScrollableTable from "./ScrollableTable";
+import Switch from "@mui/material/Switch";
 
 interface Node {
   value: number;
@@ -25,13 +26,16 @@ const BinaryTree = () => {
   const DISPLAY_WIDTH = (window.innerWidth * CANVAS_WIDTH_PERCENTAGE) / 100;
   const DISPLAY_HEIGHT = (window.innerHeight * CANVAS_HEIGHT_PERCENTAGE) / 100;
   const DEFAULT_RADIUS = 5;
-  const DEFAULT_NUM_NODES = 200;
+  const DEFAULT_NUM_NODES = 30;
   const [nodeRadius, setNodeRadius] = useState(DEFAULT_RADIUS);
   const [tempNumNodes, setTempNumNodes] = useState(DEFAULT_NUM_NODES);
   const [numNodes, setNumNodes] = useState(DEFAULT_NUM_NODES);
   const [playing, setPlaying] = useState(false);
   const [finished, setFinished] = useState(true);
   const [traversalStep, setTraversalStep] = useState(0);
+  const [random, setRandom] = useState(false);
+  const [updateTraversalFlag, setUpdateTraversalFlag] = useState(false);
+  const label = { inputProps: { "aria-label": "Random Tree" } };
 
   function calculateBaseXOffset() {
     const numLevels = Math.floor(Math.log2(numNodes));
@@ -50,7 +54,6 @@ const BinaryTree = () => {
     return Math.pow(2, numLevels) * radius * 2;
   }
 
-  //const [baseXOffset, setBaseXOffset] = useState(calculateBaseXOffset());
   const [baseXOffset, setBaseXOffset] = useState(10);
 
   const generateTree = (size: number) => {
@@ -66,7 +69,7 @@ const BinaryTree = () => {
       y: 25,
     };
     const queue = new Queue<Node>(head);
-    let xOffset = baseXOffset;
+    let xOffset = 70;
     while (i < size) {
       const current = queue.dequeue();
       current.left = {
@@ -275,7 +278,7 @@ const BinaryTree = () => {
   const [traversal, setTraversal] = useState<Step[]>([]);
   const [listedTraversal, setListedTraversal] = useState<Step[]>([]);
   const [tree, setTree] = useState<Node | null>(
-    generateRandomTree(DEFAULT_NUM_NODES),
+    generateTree(DEFAULT_NUM_NODES),
   );
   const [savedTree, setSavedTree] = useState<Node | null>(tree);
   const [selectedOption, setSelectedOption] = useState("inOrder"); // Default option
@@ -421,7 +424,7 @@ const BinaryTree = () => {
   const handleInput = (event: any) => {
     const inputValue = event.target.value;
     const numericValue = parseInt(inputValue, 10);
-    setTempNumNodes(numericValue);
+    setNumNodes(numericValue);
   };
 
   const handleStart = () => {
@@ -512,24 +515,20 @@ const BinaryTree = () => {
     drawTree(tree);
   }, [tree]);
 
-  useEffect(() => {
-    let currentRadius = DEFAULT_RADIUS;
-    while (
-      calculateBottomWidth(currentRadius) >
-      DISPLAY_WIDTH - 20 - nodeRadius
-    ) {
-      currentRadius -= 1;
+  function buildTree() {
+    let tree;
+    if (random) {
+      tree = generateRandomTree(numNodes);
+    } else {
+      tree = generateTree(numNodes);
     }
-    //setNodeRadius(currentRadius);
-  }, [numNodes]);
-
-  useEffect(() => {
-    //setTree(generateTree(numNodes));
+    setTree(tree);
+    setSavedTree(tree);
     setListedTraversal([]);
     setPlaying(false);
     setFinished(true);
     setTraversalStep(0);
-  }, [baseXOffset]);
+  }
 
   useEffect(() => {
     if (selectedOption === "inOrder") {
@@ -542,7 +541,7 @@ const BinaryTree = () => {
     } else if (selectedOption === "bfs") {
       handleTraversalChange(bfs);
     }
-  }, [selectedOption]);
+  }, [selectedOption, updateTraversalFlag]);
 
   // Performs one step to avoid the appearance of delay
   useEffect(() => {
@@ -639,7 +638,8 @@ const BinaryTree = () => {
             style={{ marginRight: 5, height: 15, fontSize: 10 }}
             variant="contained"
             onClick={() => {
-              setNumNodes(tempNumNodes);
+              buildTree();
+              setUpdateTraversalFlag(!updateTraversalFlag);
             }}
           >
             Generate Tree
@@ -648,8 +648,9 @@ const BinaryTree = () => {
         <div>
           <label>
             Node Count:
-            <input type="number" value={tempNumNodes} onChange={handleInput} />
+            <input type="number" value={numNodes} onChange={handleInput} />
           </label>
+          <Switch {...label} onChange={() => setRandom(!random)} />
         </div>
       </div>
     </div>
