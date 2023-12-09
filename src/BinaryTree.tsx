@@ -31,7 +31,7 @@ const BinaryTree = () => {
   const [tempNumNodes, setTempNumNodes] = useState(DEFAULT_NUM_NODES);
   const [numNodes, setNumNodes] = useState(DEFAULT_NUM_NODES);
   const [playing, setPlaying] = useState(false);
-  const [finished, setFinished] = useState(true);
+  const [finished, setFinished] = useState(false);
   const [traversalStep, setTraversalStep] = useState(0);
   const [random, setRandom] = useState(false);
   const [updateTraversalFlag, setUpdateTraversalFlag] = useState(false);
@@ -619,6 +619,7 @@ const BinaryTree = () => {
             style={{ marginRight: 5, height: 15, fontSize: 10 }}
             variant="contained"
             onClick={() => {
+              if (finished) return;
               performStep();
             }}
           >
