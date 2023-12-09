@@ -24,9 +24,10 @@ const BinaryTree = () => {
   const CANVAS_HEIGHT_PERCENTAGE = 80;
   const DISPLAY_WIDTH = (window.innerWidth * CANVAS_WIDTH_PERCENTAGE) / 100;
   const DISPLAY_HEIGHT = (window.innerHeight * CANVAS_HEIGHT_PERCENTAGE) / 100;
-  const DEFAULT_RADIUS = 10;
-  const DEFAULT_NUM_NODES = 15;
+  const DEFAULT_RADIUS = 5;
+  const DEFAULT_NUM_NODES = 35;
   const [nodeRadius, setNodeRadius] = useState(DEFAULT_RADIUS);
+  const [tempNumNodes, setTempNumNodes] = useState(DEFAULT_NUM_NODES);
   const [numNodes, setNumNodes] = useState(DEFAULT_NUM_NODES);
   const [playing, setPlaying] = useState(false);
   const [finished, setFinished] = useState(true);
@@ -49,7 +50,8 @@ const BinaryTree = () => {
     return Math.pow(2, numLevels) * radius * 2;
   }
 
-  const [baseXOffset, setBaseXOffset] = useState(calculateBaseXOffset());
+  //const [baseXOffset, setBaseXOffset] = useState(calculateBaseXOffset());
+  const [baseXOffset, setBaseXOffset] = useState(10);
 
   const generateTree = (size: number) => {
     const numLevels = Math.floor(Math.log2(numNodes));
@@ -93,12 +95,170 @@ const BinaryTree = () => {
     return head;
   };
 
+  function randomIntFromInterval(min: number, max: number) {
+    // min and max included
+    return Math.floor(Math.random() * (max - min + 1) + min);
+  }
+
+  const generateRandomTree = (size: number) => {
+    const yOffset = 30;
+
+    function determineHeight(yValue: number, yOffset: number) {
+      let height = 1;
+      while (25 + height * yOffset !== yValue) {
+        height++;
+      }
+      return height;
+    }
+
+    function isOverlap(node1: Node, node2: Node) {
+      const nodeBorder = 1;
+      const dx = node1.x - node2.x;
+      const dy = node1.y - node2.y;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+      return distance < 2 * nodeRadius + 2 * nodeBorder;
+    }
+
+    const head = {
+      value: 1,
+      state: "clean",
+      left: null,
+      right: null,
+      x: DISPLAY_WIDTH / 2,
+      y: 25,
+    };
+    const leafNodes: Node[] = [head];
+    const allNodes: Node[] = [];
+
+    function checkOverlap(currentNode: Node) {
+      for (const node of allNodes) {
+        if (isOverlap(currentNode, node)) return true;
+      }
+      return false;
+    }
+    let xOffset = 70;
+    let i = 2;
+    while (i <= size) {
+      const index = randomIntFromInterval(0, leafNodes.length - 1);
+      const currentNode = leafNodes[index];
+      if (currentNode.left && currentNode.right) {
+        leafNodes.splice(index, 1);
+        continue;
+      }
+
+      const potentialNode = {
+        value: i,
+        state: "clean",
+        left: null,
+        right: null,
+        x:
+          currentNode.x +
+          xOffset / determineHeight(currentNode.y + yOffset, yOffset),
+        y: currentNode.y + yOffset,
+      };
+
+      const checkLeftFirst = Math.random();
+      if (checkLeftFirst > 0.5) {
+        potentialNode.x =
+          currentNode.x +
+          xOffset / determineHeight(currentNode.y + yOffset, yOffset);
+        if (
+          currentNode.left &&
+          currentNode.y + yOffset + 2 * nodeRadius < DISPLAY_HEIGHT &&
+          !checkOverlap(potentialNode)
+        ) {
+          currentNode.right = potentialNode;
+          leafNodes.push(currentNode.right);
+          allNodes.push(currentNode.right);
+          if (!currentNode.left) leafNodes.push(currentNode);
+          i += 1;
+          continue;
+        }
+        potentialNode.x =
+          currentNode.x -
+          xOffset / determineHeight(currentNode.y + yOffset, yOffset);
+        if (
+          currentNode.right &&
+          currentNode.y + yOffset + 2 * nodeRadius < DISPLAY_HEIGHT &&
+          !checkOverlap(potentialNode)
+        ) {
+          currentNode.left = potentialNode;
+          leafNodes.push(currentNode.left);
+          allNodes.push(currentNode.left);
+          if (!currentNode.right) leafNodes.push(currentNode);
+          i += 1;
+          continue;
+        }
+      } else {
+        potentialNode.x =
+          currentNode.x -
+          xOffset / determineHeight(currentNode.y + yOffset, yOffset);
+        if (
+          currentNode.right &&
+          currentNode.y + yOffset + 2 * nodeRadius < DISPLAY_HEIGHT &&
+          !checkOverlap(potentialNode)
+        ) {
+          currentNode.left = potentialNode;
+          leafNodes.push(currentNode.left);
+          allNodes.push(currentNode.left);
+          if (!currentNode.right) leafNodes.push(currentNode);
+          i += 1;
+          continue;
+        }
+        potentialNode.x =
+          currentNode.x +
+          xOffset / determineHeight(currentNode.y + yOffset, yOffset);
+        if (
+          currentNode.left &&
+          currentNode.y + yOffset + 2 * nodeRadius < DISPLAY_HEIGHT &&
+          !checkOverlap(potentialNode)
+        ) {
+          currentNode.right = potentialNode;
+          leafNodes.push(currentNode.right);
+          allNodes.push(currentNode.right);
+          if (!currentNode.left) leafNodes.push(currentNode);
+          i += 1;
+          continue;
+        }
+      }
+      if (Math.random() > 0.5) {
+        potentialNode.x =
+          currentNode.x -
+          xOffset / determineHeight(currentNode.y + yOffset, yOffset);
+        if (
+          currentNode.y + yOffset + 2 * nodeRadius < DISPLAY_HEIGHT &&
+          !checkOverlap(potentialNode)
+        ) {
+          currentNode.left = potentialNode;
+          leafNodes.push(currentNode.left);
+          allNodes.push(currentNode.left);
+          i += 1;
+        }
+      } else {
+        potentialNode.x =
+          currentNode.x +
+          xOffset / determineHeight(currentNode.y + yOffset, yOffset);
+        if (
+          currentNode.y + yOffset + 2 * nodeRadius < DISPLAY_HEIGHT &&
+          !checkOverlap(potentialNode)
+        ) {
+          currentNode.right = potentialNode;
+          leafNodes.push(currentNode.right);
+          allNodes.push(currentNode.right);
+          i += 1;
+        }
+      }
+    }
+    return head;
+  };
+
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [traversal, setTraversal] = useState<Step[]>([]);
   const [listedTraversal, setListedTraversal] = useState<Step[]>([]);
   const [tree, setTree] = useState<Node | null>(
-    generateTree(DEFAULT_NUM_NODES),
+    generateRandomTree(DEFAULT_NUM_NODES),
   );
+  const [savedTree, setSavedTree] = useState<Node | null>(tree);
   const [selectedOption, setSelectedOption] = useState("inOrder"); // Default option
 
   const inOrderTraverse = (node: Node | null | undefined) => {
@@ -176,6 +336,9 @@ const BinaryTree = () => {
   };
 
   const performStep = async () => {
+    if (traversalStep === 0) {
+      setTree(savedTree);
+    }
     if (traversalStep === traversal.length) {
       setTraversalStep(0);
       setPlaying(false);
@@ -203,13 +366,13 @@ const BinaryTree = () => {
   const handleInput = (event: any) => {
     const inputValue = event.target.value;
     const numericValue = parseInt(inputValue, 10);
-    setNumNodes(numericValue);
+    setTempNumNodes(numericValue);
   };
 
   const handleStart = () => {
     setListedTraversal([]);
     setTraversalStep(0);
-    setTree(generateTree(numNodes));
+    setTree(savedTree);
     setPlaying(true);
     setFinished(false);
   };
@@ -217,7 +380,7 @@ const BinaryTree = () => {
   const handleTraversalChange = (traversalFunc: Function) => {
     setListedTraversal([]);
     setTraversalStep(0);
-    setTree(generateTree(numNodes));
+    setTree(savedTree);
     setTraversal(traversalFunc(tree));
     setPlaying(false);
     setFinished(true);
@@ -300,18 +463,25 @@ const BinaryTree = () => {
     ) {
       currentRadius -= 1;
     }
-    setNodeRadius(currentRadius);
-    setBaseXOffset(calculateBaseXOffset());
+    //setNodeRadius(currentRadius);
   }, [numNodes]);
 
   useEffect(() => {
+    //setTree(generateTree(numNodes));
+    setListedTraversal([]);
+    setPlaying(false);
+    setFinished(true);
+    setTraversalStep(0);
+  }, [baseXOffset]);
+
+  useEffect(() => {
     if (selectedOption === "inOrder") {
-        handleTraversalChange(inOrderTraverse)
+      handleTraversalChange(inOrderTraverse);
       setTraversal(inOrderTraverse(tree));
     } else if (selectedOption === "preOrder") {
-        handleTraversalChange(preOrderTraverse)
+      handleTraversalChange(preOrderTraverse);
     } else if (selectedOption === "postOrder") {
-        handleTraversalChange(postOrderTraverse)
+      handleTraversalChange(postOrderTraverse);
     }
   }, [selectedOption]);
 
@@ -393,7 +563,7 @@ const BinaryTree = () => {
               performStep();
             }}
           >
-            Click Through
+            Click
           </Button>
           <Button
             style={{ marginRight: 5, height: 15, fontSize: 10 }}
@@ -409,7 +579,7 @@ const BinaryTree = () => {
             style={{ marginRight: 5, height: 15, fontSize: 10 }}
             variant="contained"
             onClick={() => {
-              setTree(generateTree(numNodes));
+              setNumNodes(tempNumNodes);
             }}
           >
             Generate Tree
@@ -418,7 +588,7 @@ const BinaryTree = () => {
         <div>
           <label>
             Node Count:
-            <input type="number" value={numNodes} onChange={handleInput} />
+            <input type="number" value={tempNumNodes} onChange={handleInput} />
           </label>
         </div>
       </div>
