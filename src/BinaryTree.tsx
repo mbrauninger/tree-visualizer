@@ -50,7 +50,7 @@ const BinaryTree = () => {
     left: "50%",
     transform: "translate(-50%, -50%)",
     width: 300,
-    height: 80,
+    height: 190,
     bgcolor: "lightblue",
     border: "2px solid #000",
     boxShadow: 24,
@@ -125,7 +125,7 @@ const BinaryTree = () => {
 
   const generateRandomTree = (size: number) => {
     const yOffset = 30;
-    const initialY = 25
+    const initialY = 25;
 
     function determineHeight(yValue: number, yOffset: number) {
       let height = 1;
@@ -166,9 +166,9 @@ const BinaryTree = () => {
     }
 
     function calculateXOffset(y: number, yOffset: number) {
-        const minXOffset = 2 * nodeRadius + 1
-        const potential = xOffset / determineHeight(y + yOffset, yOffset);
-        return potential < minXOffset ? minXOffset : potential;
+      const minXOffset = 2 * nodeRadius + 1;
+      const potential = xOffset / determineHeight(y + yOffset, yOffset);
+      return potential < minXOffset ? minXOffset : potential;
     }
 
     let xOffset = 70;
@@ -196,8 +196,7 @@ const BinaryTree = () => {
       potentialNode.y = currentNode.y + yOffset;
       if (checkLeftFirst < 0.5) {
         potentialNode.x =
-          currentNode.x +
-          calculateXOffset(currentNode.y, yOffset);
+          currentNode.x + calculateXOffset(currentNode.y, yOffset);
         if (
           !currentNode.right &&
           potentialNode.y + nodeRadius < DISPLAY_HEIGHT &&
@@ -212,8 +211,7 @@ const BinaryTree = () => {
           continue;
         }
         potentialNode.x =
-          currentNode.x -
-          calculateXOffset(currentNode.y, yOffset);
+          currentNode.x - calculateXOffset(currentNode.y, yOffset);
         if (
           !currentNode.left &&
           potentialNode.y + nodeRadius < DISPLAY_HEIGHT &&
@@ -229,8 +227,7 @@ const BinaryTree = () => {
         }
       } else {
         potentialNode.x =
-          currentNode.x -
-          calculateXOffset(currentNode.y, yOffset);
+          currentNode.x - calculateXOffset(currentNode.y, yOffset);
         if (
           !currentNode.left &&
           potentialNode.y + nodeRadius < DISPLAY_HEIGHT &&
@@ -245,8 +242,7 @@ const BinaryTree = () => {
           continue;
         }
         potentialNode.x =
-          currentNode.x +
-          calculateXOffset(currentNode.y, yOffset);
+          currentNode.x + calculateXOffset(currentNode.y, yOffset);
         if (
           !currentNode.right &&
           potentialNode.y + nodeRadius < DISPLAY_HEIGHT &&
@@ -261,12 +257,11 @@ const BinaryTree = () => {
           continue;
         }
       }
-    console.log(`Node ${leafNodes[index].value} is not fit for children`)
-    leafNodes.splice(index, 1);
-    if (leafNodes.length === 0) {
+      console.log(`Node ${leafNodes[index].value} is not fit for children`);
+      leafNodes.splice(index, 1);
+      if (leafNodes.length === 0) {
         console.log(`Only could fit ${i} nodes in the screen`);
-    }
-      
+      }
     }
     bfsNumberAssign(head);
     return head;
@@ -274,28 +269,28 @@ const BinaryTree = () => {
 
   function bfsNumberAssign(head: Node) {
     if (!head) {
-        return;
-      }
-      const nodes = [head];
-      let i = 2;
+      return;
+    }
+    const nodes = [head];
+    let i = 2;
+    while (nodes.length > 0) {
+      const nodesAtLevel: Node[] = [];
       while (nodes.length > 0) {
-        const nodesAtLevel: Node[] = [];
-        while (nodes.length > 0) {
-          const currentNode = nodes.splice(0, 1)[0];
-          if (!currentNode) continue;
-          if (currentNode.left) {
-            nodesAtLevel.push(currentNode.left);
-          }
-          if (currentNode.right) {
-            nodesAtLevel.push(currentNode.right);
-          }
+        const currentNode = nodes.splice(0, 1)[0];
+        if (!currentNode) continue;
+        if (currentNode.left) {
+          nodesAtLevel.push(currentNode.left);
         }
-        for (const node of nodesAtLevel) {
-          nodes.push(node);
-          node.value = i;
-          i++;
+        if (currentNode.right) {
+          nodesAtLevel.push(currentNode.right);
         }
       }
+      for (const node of nodesAtLevel) {
+        nodes.push(node);
+        node.value = i;
+        i++;
+      }
+    }
   }
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -454,12 +449,12 @@ const BinaryTree = () => {
   const handleStart = () => {
     if (finished) return;
     if (traversalStep === 0) {
-        setListedTraversal([]);
-        setTree(savedTree);
-        setPlaying(true);
-        setFinished(false);
+      setListedTraversal([]);
+      setTree(savedTree);
+      setPlaying(true);
+      setFinished(false);
     } else {
-        setPlaying(!playing);
+      setPlaying(!playing);
     }
   };
 
@@ -640,7 +635,7 @@ const BinaryTree = () => {
               <label>
                 Node Count:
                 <input
-                  style={{ position: "relative", left: 7, marginBottom: 7 }}
+                  style={{ position: "relative", left: 7, marginBottom: 13, height: 25 }}
                   type="number"
                   value={numNodes}
                   onChange={handleInput}
@@ -659,13 +654,13 @@ const BinaryTree = () => {
                 <Select
                   style={{
                     marginRight: 5,
-                    height: 20,
+                    height: 30,
                     width: 100,
                     fontSize: 10,
                     backgroundColor: "white",
                     position: "relative",
                     left: 7,
-                    marginBottom: 7
+                    marginBottom: 13,
                   }}
                   value={selectedOption}
                   label="Age"
@@ -698,13 +693,13 @@ const BinaryTree = () => {
                   <Select
                     style={{
                       marginRight: 5,
-                      height: 20,
+                      height: 30,
                       width: 100,
                       fontSize: 10,
                       backgroundColor: "white",
                       position: "relative",
                       left: 7,
-                      marginBottom: 7
+                      marginBottom: 13,
                     }}
                     value={sortingSpeedLabel}
                     label="Age"
@@ -728,17 +723,8 @@ const BinaryTree = () => {
                     </MenuItem>
                   </Select>
                 </label>
-                <Button
-                  style={{ marginRight: 5, height: 25, fontSize: 16 }}
-                  variant="contained"
-                  onClick={() => {
-                    buildTree();
-                    setUpdateTraversalFlag(!updateTraversalFlag);
-                  }}
-                >
-                  Generate Tree
-                </Button>
               </Box>
+              <div style={{fontSize: 13, position: 'relative', bottom: 42}}>Note, the tree generator will attempt to randomly place nodes in the canvas until there is no more room. If the number you input contains more nodes than can fit on the screen, the tree generator will construct a tree with as many nodes as possible.</div>
             </Box>
           </Box>
         </Box>
@@ -752,18 +738,34 @@ const BinaryTree = () => {
           position: "relative",
           bottom: 15,
         }}
-      >
-        <canvas
-          ref={canvasRef}
-          style={{
+      >   
+      <div style={{
             width: `${CANVAS_WIDTH_PERCENTAGE}%`,
             height: `${CANVAS_HEIGHT_PERCENTAGE}vh`,
-            backgroundColor: "lightblue",
             marginTop: "5px",
             position: "relative",
             left: 5,
+          }}>
+        
+        <canvas
+          ref={canvasRef}
+          style={{
+            width: `${100}%`,
+            height: `${100}%`,
+            backgroundColor: "lightblue",
           }}
         />
+        <Button
+                  style={{ marginRight: 5, height: 25, fontSize: 16, position: 'absolute', top: 10, right: 5}}
+                  variant="contained"
+                  onClick={() => {
+                    buildTree();
+                    setUpdateTraversalFlag(!updateTraversalFlag);
+                  }}
+                >
+                  New Tree
+                </Button>
+        </div>     
         {window.innerWidth > 768 && <ScrollableTable data={listedTraversal} />}
       </div>
       <div
@@ -803,7 +805,7 @@ const BinaryTree = () => {
             style={{ marginRight: 5, height: 25, fontSize: 16 }}
             variant="contained"
             onClick={() => {
-              handleReset()
+              handleReset();
             }}
           >
             Reset
