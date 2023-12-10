@@ -448,10 +448,22 @@ const BinaryTree = () => {
   };
 
   const handleStart = () => {
+    if (finished) return;
+    if (traversalStep === 0) {
+        setListedTraversal([]);
+        setTree(savedTree);
+        setPlaying(true);
+        setFinished(false);
+    } else {
+        setPlaying(!playing);
+    }
+  };
+
+  const handleReset = () => {
     setListedTraversal([]);
     setTraversalStep(0);
     setTree(savedTree);
-    setPlaying(true);
+    setPlaying(false);
     setFinished(false);
   };
 
@@ -769,7 +781,7 @@ const BinaryTree = () => {
             variant="contained"
             onClick={() => handleStart()}
           >
-            Start
+            Play
           </Button>
           <Button
             style={{ marginRight: 5, height: 25, fontSize: 16 }}
@@ -785,11 +797,10 @@ const BinaryTree = () => {
             style={{ marginRight: 5, height: 25, fontSize: 16 }}
             variant="contained"
             onClick={() => {
-              if (finished) return;
-              setPlaying(!playing);
+              handleReset()
             }}
           >
-            Pause
+            Reset
           </Button>
           <Button
             style={{ marginRight: 5, height: 25, fontSize: 16 }}
