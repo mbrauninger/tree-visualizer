@@ -50,7 +50,7 @@ const BinaryTree = () => {
     left: "50%",
     transform: "translate(-50%, -50%)",
     width: 300,
-    maxWidth: "80%",
+    height: 80,
     bgcolor: "lightblue",
     border: "2px solid #000",
     boxShadow: 24,
@@ -125,10 +125,11 @@ const BinaryTree = () => {
 
   const generateRandomTree = (size: number) => {
     const yOffset = 30;
+    const initialY = 25
 
     function determineHeight(yValue: number, yOffset: number) {
       let height = 1;
-      while (25 + height * yOffset !== yValue) {
+      while (initialY + height * yOffset !== yValue) {
         height++;
       }
       return height;
@@ -152,7 +153,7 @@ const BinaryTree = () => {
       left: null,
       right: null,
       x: DISPLAY_WIDTH / 2,
-      y: 25,
+      y: initialY,
     };
     const leafNodes: Node[] = [head];
     const allNodes: Node[] = [];
@@ -163,6 +164,13 @@ const BinaryTree = () => {
       }
       return false;
     }
+
+    function calculateXOffset(y: number, yOffset: number) {
+        const minXOffset = 2 * nodeRadius + 1
+        const potential = xOffset / determineHeight(y + yOffset, yOffset);
+        return potential < minXOffset ? minXOffset : potential;
+    }
+
     let xOffset = 70;
     let i = 2;
     while (i <= size && leafNodes.length > 0) {
@@ -185,13 +193,14 @@ const BinaryTree = () => {
       };
 
       const checkLeftFirst = Math.random();
-      if (checkLeftFirst > 0.5) {
+      potentialNode.y = currentNode.y + yOffset;
+      if (checkLeftFirst < 0.5) {
         potentialNode.x =
           currentNode.x +
-          xOffset / determineHeight(currentNode.y + yOffset, yOffset);
+          calculateXOffset(currentNode.y, yOffset);
         if (
-          currentNode.left &&
-          currentNode.y + yOffset + 2 * nodeRadius < DISPLAY_HEIGHT &&
+          !currentNode.right &&
+          potentialNode.y + nodeRadius < DISPLAY_HEIGHT &&
           !checkOverlap(potentialNode) &&
           isInWidth(potentialNode)
         ) {
@@ -204,10 +213,10 @@ const BinaryTree = () => {
         }
         potentialNode.x =
           currentNode.x -
-          xOffset / determineHeight(currentNode.y + yOffset, yOffset);
+          calculateXOffset(currentNode.y, yOffset);
         if (
-          currentNode.right &&
-          currentNode.y + yOffset + 2 * nodeRadius < DISPLAY_HEIGHT &&
+          !currentNode.left &&
+          potentialNode.y + nodeRadius < DISPLAY_HEIGHT &&
           !checkOverlap(potentialNode) &&
           isInWidth(potentialNode)
         ) {
@@ -221,10 +230,10 @@ const BinaryTree = () => {
       } else {
         potentialNode.x =
           currentNode.x -
-          xOffset / determineHeight(currentNode.y + yOffset, yOffset);
+          calculateXOffset(currentNode.y, yOffset);
         if (
-          currentNode.right &&
-          currentNode.y + yOffset + 2 * nodeRadius < DISPLAY_HEIGHT &&
+          !currentNode.left &&
+          potentialNode.y + nodeRadius < DISPLAY_HEIGHT &&
           !checkOverlap(potentialNode) &&
           isInWidth(potentialNode)
         ) {
@@ -237,10 +246,10 @@ const BinaryTree = () => {
         }
         potentialNode.x =
           currentNode.x +
-          xOffset / determineHeight(currentNode.y + yOffset, yOffset);
+          calculateXOffset(currentNode.y, yOffset);
         if (
-          currentNode.left &&
-          currentNode.y + yOffset + 2 * nodeRadius < DISPLAY_HEIGHT &&
+          !currentNode.right &&
+          potentialNode.y + nodeRadius < DISPLAY_HEIGHT &&
           !checkOverlap(potentialNode) &&
           isInWidth(potentialNode)
         ) {
@@ -252,47 +261,42 @@ const BinaryTree = () => {
           continue;
         }
       }
-
-      let setNode = false;
-      if (Math.random() > 0.5) {
-        potentialNode.x =
-          currentNode.x -
-          xOffset / determineHeight(currentNode.y + yOffset, yOffset);
-        if (
-          currentNode.y + yOffset + 2 * nodeRadius < DISPLAY_HEIGHT &&
-          !checkOverlap(potentialNode) &&
-          isInWidth(potentialNode)
-        ) {
-          currentNode.left = potentialNode;
-          leafNodes.push(currentNode.left);
-          allNodes.push(currentNode.left);
-          i += 1;
-          setNode = true;
-        }
-      } else {
-        potentialNode.x =
-          currentNode.x +
-          xOffset / determineHeight(currentNode.y + yOffset, yOffset);
-        if (
-          currentNode.y + yOffset + 2 * nodeRadius < DISPLAY_HEIGHT &&
-          !checkOverlap(potentialNode) &&
-          isInWidth(potentialNode)
-        ) {
-          currentNode.right = potentialNode;
-          leafNodes.push(currentNode.right);
-          allNodes.push(currentNode.right);
-          i += 1;
-          setNode = true;
-        }
-        if (!setNode) {
-          leafNodes.splice(index, 1);
-          if (leafNodes.length === 0)
-            console.log(`Only could fit ${i} nodes in the screen`);
-        }
-      }
+    console.log(`Node ${leafNodes[index].value} is not fit for children`)
+    leafNodes.splice(index, 1);
+    if (leafNodes.length === 0) {
+        console.log(`Only could fit ${i} nodes in the screen`);
     }
+      
+    }
+    bfsNumberAssign(head);
     return head;
   };
+
+  function bfsNumberAssign(head: Node) {
+    if (!head) {
+        return;
+      }
+      const nodes = [head];
+      let i = 2;
+      while (nodes.length > 0) {
+        const nodesAtLevel: Node[] = [];
+        while (nodes.length > 0) {
+          const currentNode = nodes.splice(0, 1)[0];
+          if (!currentNode) continue;
+          if (currentNode.left) {
+            nodesAtLevel.push(currentNode.left);
+          }
+          if (currentNode.right) {
+            nodesAtLevel.push(currentNode.right);
+          }
+        }
+        for (const node of nodesAtLevel) {
+          nodes.push(node);
+          node.value = i;
+          i++;
+        }
+      }
+  }
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [traversal, setTraversal] = useState<Step[]>([]);
@@ -636,7 +640,7 @@ const BinaryTree = () => {
               <label>
                 Node Count:
                 <input
-                  style={{ position: "relative", left: 7 }}
+                  style={{ position: "relative", left: 7, marginBottom: 7 }}
                   type="number"
                   value={numNodes}
                   onChange={handleInput}
@@ -655,12 +659,13 @@ const BinaryTree = () => {
                 <Select
                   style={{
                     marginRight: 5,
-                    height: 15,
+                    height: 20,
                     width: 100,
                     fontSize: 10,
                     backgroundColor: "white",
                     position: "relative",
                     left: 7,
+                    marginBottom: 7
                   }}
                   value={selectedOption}
                   label="Age"
@@ -693,12 +698,13 @@ const BinaryTree = () => {
                   <Select
                     style={{
                       marginRight: 5,
-                      height: 15,
+                      height: 20,
                       width: 100,
                       fontSize: 10,
                       backgroundColor: "white",
                       position: "relative",
                       left: 7,
+                      marginBottom: 7
                     }}
                     value={sortingSpeedLabel}
                     label="Age"
