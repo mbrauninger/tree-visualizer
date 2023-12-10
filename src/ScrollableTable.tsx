@@ -26,26 +26,28 @@ const ScrollableTable: React.FC<ScrollableTableProps> = ({ data }) => {
     <TableContainer
       component={Paper}
       style={{
-        maxHeight: "200px",
-        width: "150px",
+        height: window.innerWidth <= 768 ? "70vh" : "80vh",
+        width: "225px",
         overflowY: "auto",
         marginLeft: "10px",
+        position: "relative",
+        top: 2,
       }}
       ref={tableRef}
     >
-      <Table>
+      <Table stickyHeader>
         <TableHead>
           <TableRow>
-            <TableCell>State</TableCell>
-            <TableCell>Node</TableCell>
+            <TableCell sx={{ fontSize: 20 }}>State</TableCell>
+            <TableCell sx={{ fontSize: 20 }}>Node</TableCell>
             {/* Add more table headers as needed */}
           </TableRow>
         </TableHead>
         <TableBody>
           {data.map((step, index) => (
             <TableRow key={index}>
-              <TableCell>{step.state}</TableCell>
-              <TableCell>{step.value}</TableCell>
+              <TableCell sx={{ fontSize: 20 }}>{step.state}</TableCell>
+              <TableCell sx={{ fontSize: 20 }}>{step.value}</TableCell>
               {/* Add more table cells as needed */}
             </TableRow>
           ))}

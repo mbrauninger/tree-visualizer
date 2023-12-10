@@ -5,6 +5,11 @@ import MenuItem from "@mui/material/MenuItem";
 import Button from "@mui/material/Button";
 import ScrollableTable from "./ScrollableTable";
 import Switch from "@mui/material/Switch";
+import Modal from "@mui/material/Modal";
+import Box from "@mui/material/Box";
+import Hidden from "@mui/material/Hidden";
+import { IconButton } from "@mui/material";
+import CloseIcon from "@mui/icons-material/Close";
 
 interface Node {
   value: number;
@@ -21,21 +26,36 @@ export interface Step {
 }
 
 const BinaryTree = () => {
-  const CANVAS_WIDTH_PERCENTAGE = 70;
-  const CANVAS_HEIGHT_PERCENTAGE = 80;
+  const CANVAS_WIDTH_PERCENTAGE = window.innerWidth <= 768 ? 97.5 : 40;
+  const CANVAS_HEIGHT_PERCENTAGE = window.innerWidth <= 768 ? 70 : 80;
   const DISPLAY_WIDTH = (window.innerWidth * CANVAS_WIDTH_PERCENTAGE) / 100;
   const DISPLAY_HEIGHT = (window.innerHeight * CANVAS_HEIGHT_PERCENTAGE) / 100;
-  const DEFAULT_RADIUS = 5;
-  const DEFAULT_NUM_NODES = 30;
+  const DEFAULT_RADIUS = 10;
+  const DEFAULT_NUM_NODES = 120;
   const [nodeRadius, setNodeRadius] = useState(DEFAULT_RADIUS);
   const [tempNumNodes, setTempNumNodes] = useState(DEFAULT_NUM_NODES);
   const [numNodes, setNumNodes] = useState(DEFAULT_NUM_NODES);
   const [playing, setPlaying] = useState(false);
   const [finished, setFinished] = useState(false);
   const [traversalStep, setTraversalStep] = useState(0);
-  const [random, setRandom] = useState(false);
+  const [random, setRandom] = useState(true);
+  const [sortingSpeedLabel, setSortingSpeedLabel] = useState("Fast");
+  const [sortingSpeed, setSortingSpeed] = useState(50);
   const [updateTraversalFlag, setUpdateTraversalFlag] = useState(false);
   const label = { inputProps: { "aria-label": "Random Tree" } };
+  const [modalOpen, setModalOpen] = useState(false);
+  const modalStyle = {
+    position: "absolute" as "absolute",
+    top: "50%",
+    left: "50%",
+    transform: "translate(-50%, -50%)",
+    width: 300,
+    maxWidth: "80%",
+    bgcolor: "lightblue",
+    border: "2px solid #000",
+    boxShadow: 24,
+    p: 4,
+  };
 
   function calculateBaseXOffset() {
     const numLevels = Math.floor(Math.log2(numNodes));
@@ -278,7 +298,7 @@ const BinaryTree = () => {
   const [traversal, setTraversal] = useState<Step[]>([]);
   const [listedTraversal, setListedTraversal] = useState<Step[]>([]);
   const [tree, setTree] = useState<Node | null>(
-    generateTree(DEFAULT_NUM_NODES),
+    generateRandomTree(DEFAULT_NUM_NODES),
   );
   const [savedTree, setSavedTree] = useState<Node | null>(tree);
   const [selectedOption, setSelectedOption] = useState("inOrder"); // Default option
@@ -423,7 +443,7 @@ const BinaryTree = () => {
 
   const handleInput = (event: any) => {
     const inputValue = event.target.value;
-    const numericValue = parseInt(inputValue, 10);
+    const numericValue = parseInt(inputValue);
     setNumNodes(numericValue);
   };
 
@@ -441,7 +461,7 @@ const BinaryTree = () => {
     setTree(savedTree);
     setTraversal(traversalFunc(tree));
     setPlaying(false);
-    setFinished(true);
+    setFinished(false);
   };
 
   useEffect(() => {
@@ -543,6 +563,16 @@ const BinaryTree = () => {
     }
   }, [selectedOption, updateTraversalFlag]);
 
+  useEffect(() => {
+    if (sortingSpeedLabel === "Fast") {
+      setSortingSpeed(50);
+    } else if (sortingSpeedLabel === "Medium") {
+      setSortingSpeed(100);
+    } else if (sortingSpeedLabel === "Slow") {
+      setSortingSpeed(1000);
+    }
+  }, [sortingSpeedLabel]);
+
   // Performs one step to avoid the appearance of delay
   useEffect(() => {
     if (playing) {
@@ -554,8 +584,9 @@ const BinaryTree = () => {
     const intervalId = setInterval(() => {
       if (playing) {
         performStep();
+      } else {
       }
-    }, 10);
+    }, sortingSpeed);
 
     return () => clearInterval(intervalId);
   }, [playing, traversalStep]);
@@ -565,8 +596,143 @@ const BinaryTree = () => {
       <div
         style={{
           display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <h1>Binary Tree Traverser</h1>
+      </div>
+      <Modal
+        sx={modalStyle}
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+        aria-labelledby="modal-modal-title"
+        aria-describedby="modal-modal-description"
+      >
+        <Box>
+          <IconButton
+            edge="end"
+            color="inherit"
+            onClick={() => setModalOpen(false)}
+            aria-label="close"
+            style={{ position: "absolute", top: 0, right: 10 }}
+          >
+            <CloseIcon />
+          </IconButton>
+          <Box sx={{ position: "relative", bottom: 15 }}>
+            <Box>
+              <label>
+                Node Count:
+                <input
+                  style={{ position: "relative", left: 7 }}
+                  type="number"
+                  value={numNodes}
+                  onChange={handleInput}
+                />
+              </label>
+            </Box>
+            {/* <Box>
+            <label>
+                Random Tree:
+                <Switch onChange={() => setRandom(!random)} />
+                </label>
+            </Box> */}
+            <Box>
+              <label>
+                Traversal Type:
+                <Select
+                  style={{
+                    marginRight: 5,
+                    height: 15,
+                    width: 100,
+                    fontSize: 10,
+                    backgroundColor: "white",
+                    position: "relative",
+                    left: 7,
+                  }}
+                  value={selectedOption}
+                  label="Age"
+                  onChange={(event) => {
+                    setSelectedOption(event.target.value);
+                  }}
+                  MenuProps={{
+                    style: {
+                      height: 400, // Set the maximum height of the menu
+                    },
+                  }}
+                >
+                  <MenuItem sx={{ fontSize: 10 }} value={"inOrder"}>
+                    InOrder
+                  </MenuItem>
+                  <MenuItem sx={{ fontSize: 10 }} value={"preOrder"}>
+                    PreOrder
+                  </MenuItem>
+                  <MenuItem sx={{ fontSize: 10 }} value={"postOrder"}>
+                    PostOrder
+                  </MenuItem>
+                  <MenuItem sx={{ fontSize: 10 }} value={"bfs"}>
+                    Breadth-First Search
+                  </MenuItem>
+                </Select>
+              </label>
+              <Box sx={{ paddingBottom: 5 }}>
+                <label>
+                  Sorting Speed:
+                  <Select
+                    style={{
+                      marginRight: 5,
+                      height: 15,
+                      width: 100,
+                      fontSize: 10,
+                      backgroundColor: "white",
+                      position: "relative",
+                      left: 7,
+                    }}
+                    value={sortingSpeedLabel}
+                    label="Age"
+                    onChange={(event) => {
+                      setSortingSpeedLabel(event.target.value);
+                    }}
+                    MenuProps={{
+                      style: {
+                        height: 400, // Set the maximum height of the menu
+                      },
+                    }}
+                  >
+                    <MenuItem sx={{ fontSize: 10 }} value={"Fast"}>
+                      Fast
+                    </MenuItem>
+                    <MenuItem sx={{ fontSize: 10 }} value={"Medium"}>
+                      Medium
+                    </MenuItem>
+                    <MenuItem sx={{ fontSize: 10 }} value={"Slow"}>
+                      Slow
+                    </MenuItem>
+                  </Select>
+                </label>
+                <Button
+                  style={{ marginRight: 5, height: 25, fontSize: 16 }}
+                  variant="contained"
+                  onClick={() => {
+                    buildTree();
+                    setUpdateTraversalFlag(!updateTraversalFlag);
+                  }}
+                >
+                  Generate Tree
+                </Button>
+              </Box>
+            </Box>
+          </Box>
+        </Box>
+      </Modal>
+      <div
+        style={{
+          display: "flex",
           flexDirection: "row",
           alignItems: "center",
+          justifyContent: "center",
+          position: "relative",
+          bottom: 15,
         }}
       >
         <canvas
@@ -576,57 +742,47 @@ const BinaryTree = () => {
             height: `${CANVAS_HEIGHT_PERCENTAGE}vh`,
             backgroundColor: "lightblue",
             marginTop: "5px",
+            position: "relative",
+            left: 5,
           }}
         />
-        <ScrollableTable data={listedTraversal} />
+        {window.innerWidth > 768 && <ScrollableTable data={listedTraversal} />}
       </div>
       <div
         style={{
           display: "flex",
           flexDirection: "column",
-          alignItems: "start",
+          alignItems: "center",
+          justifyContent: "center",
           marginTop: "5px",
+          position: "relative",
+          left: 5,
         }}
       >
         <div
           style={{
-            display: "flex",
-            flexDirection: "row",
             alignItems: "start",
           }}
         >
-          <Select
-            style={{ marginRight: 5, height: 15, width: 100, fontSize: 10 }}
-            value={selectedOption}
-            label="Age"
-            onChange={(event) => {
-              setSelectedOption(event.target.value);
-            }}
-          >
-            <MenuItem value={"inOrder"}>inOrder</MenuItem>
-            <MenuItem value={"preOrder"}>preOrder</MenuItem>
-            <MenuItem value={"postOrder"}>postOrder</MenuItem>
-            <MenuItem value={"bfs"}>bfs</MenuItem>
-          </Select>
           <Button
-            style={{ marginRight: 5, height: 15, fontSize: 10 }}
+            style={{ marginRight: 5, height: 25, fontSize: 16 }}
             variant="contained"
             onClick={() => handleStart()}
           >
             Start
           </Button>
           <Button
-            style={{ marginRight: 5, height: 15, fontSize: 10 }}
+            style={{ marginRight: 5, height: 25, fontSize: 16 }}
             variant="contained"
             onClick={() => {
               if (finished) return;
               performStep();
             }}
           >
-            Click
+            Step
           </Button>
           <Button
-            style={{ marginRight: 5, height: 15, fontSize: 10 }}
+            style={{ marginRight: 5, height: 25, fontSize: 16 }}
             variant="contained"
             onClick={() => {
               if (finished) return;
@@ -636,22 +792,14 @@ const BinaryTree = () => {
             Pause
           </Button>
           <Button
-            style={{ marginRight: 5, height: 15, fontSize: 10 }}
+            style={{ marginRight: 5, height: 25, fontSize: 16 }}
             variant="contained"
             onClick={() => {
-              buildTree();
-              setUpdateTraversalFlag(!updateTraversalFlag);
+              setModalOpen(true);
             }}
           >
-            Generate Tree
+            Settings
           </Button>
-        </div>
-        <div>
-          <label>
-            Node Count:
-            <input type="number" value={numNodes} onChange={handleInput} />
-          </label>
-          <Switch {...label} onChange={() => setRandom(!random)} />
         </div>
       </div>
     </div>
