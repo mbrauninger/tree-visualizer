@@ -1,10 +1,10 @@
 import React from "react";
-import BinaryTree from "./BinaryTree";
+import Traverser from "./Traverser";
 
 const App: React.FC = () => {
   return (
     <div>
-      <BinaryTree />
+      <Traverser />
     </div>
   );
 };

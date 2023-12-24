@@ -6,7 +6,7 @@ import TableRow from "@mui/material/TableRow";
 import { TableContainer } from "@mui/material";
 import TableHead from "@mui/material/TableHead";
 import Paper from "@mui/material/Paper";
-import { Step } from "./BinaryTree";
+import { Step } from "./Types";
 
 interface ScrollableTableProps {
   data: Step[];
