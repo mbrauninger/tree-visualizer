@@ -17,6 +17,7 @@ import {
   SLOW_DELAY,
   MEDIUM_DELAY,
   FAST_DELAY,
+  MAX_LISTED_TRAVERSAL_ITEMS,
 } from "./Constants";
 import { BottomButton } from "./BottomButton";
 import { drawCanvas } from "./CanvasFunctions";
@@ -38,21 +39,23 @@ const Traverser = () => {
     generateRandomTree(DEFAULT_NUM_NODES),
   );
   const [savedTree, setSavedTree] = useState<Node | null>(tree);
-  const [selectedOption, setSelectedOption] = useState(TraversalTypes.IN_ORDER);
+  const [selectedTraversal, setSelectedTraversal] = useState(TraversalTypes.IN_ORDER);
 
+  /**
+   * Performs one step in the traversal algorithm and updates the listed traversal.
+   * If state is finished, do nothing. If the traversal is on the last step, update
+   * state accordingly. 
+   */
   const performStep = async () => {
     if (finished) return;
 
-    if (traversalStep === 0) {
-      setTree(savedTree);
-    }
     if (traversalStep === traversal.length) {
       setTraversalStep(0);
       setPlaying(false);
       setFinished(true);
       return;
     }
-    if (listedTraversal.length < 30) {
+    if (listedTraversal.length < MAX_LISTED_TRAVERSAL_ITEMS) {
       setListedTraversal((prevListed) => [
         ...prevListed,
         traversal[traversalStep],
@@ -78,11 +81,13 @@ const Traverser = () => {
     });
   };
 
+  /**
+   * Pauses/unpauses the display sequence. If finished, do nothing.
+   * Update state specifically if traversal is at step 0.
+   */
   const handleStart = () => {
     if (finished) return;
     if (traversalStep === 0) {
-      setListedTraversal([]);
-      setTree(savedTree);
       setPlaying(true);
       setFinished(false);
     } else {
@@ -90,6 +95,11 @@ const Traverser = () => {
     }
   };
 
+  /**
+   * Resets state to a point where a new traversal can be started.
+   * Takes the current tree and sets all nodes to 'clean' state with
+   * the savedTree variable.
+   */
   const handleReset = () => {
     setListedTraversal([]);
     setTraversalStep(0);
@@ -98,42 +108,49 @@ const Traverser = () => {
     setFinished(false);
   };
 
+  /**
+   * Sets traversal variable and resets state.
+   * @param traversalFunc - The function that traverses the tree and builds the array to display output.
+   */
   const handleTraversalChange = (traversalFunc: Function) => {
-    setListedTraversal([]);
-    setTraversalStep(0);
-    setTree(savedTree);
+    handleReset()
     setTraversal(traversalFunc(tree));
-    setPlaying(false);
-    setFinished(false);
   };
 
   useEffect(() => {
     drawCanvas(canvasRef, tree);
   }, [tree]);
 
-  function buildTree() {
+  /**
+   * Resets and sets a new tree. Sets this tree as the saved tree to
+   * be used when resetting.
+   */
+  function newTree() {
+    handleReset()
     let tree = generateRandomTree(numNodes);
     setTree(tree);
     setSavedTree(tree);
-    setListedTraversal([]);
-    setPlaying(false);
-    setFinished(true);
-    setTraversalStep(0);
   }
 
+  /**
+   * Updates traversal according to selected traversal type.
+   */
   useEffect(() => {
-    if (selectedOption === TraversalTypes.IN_ORDER) {
+    if (selectedTraversal === TraversalTypes.IN_ORDER) {
       handleTraversalChange(inOrderTraverse);
       setTraversal(inOrderTraverse(tree));
-    } else if (selectedOption === TraversalTypes.PRE_ORDER) {
+    } else if (selectedTraversal === TraversalTypes.PRE_ORDER) {
       handleTraversalChange(preOrderTraverse);
-    } else if (selectedOption === TraversalTypes.POST_ORDER) {
+    } else if (selectedTraversal === TraversalTypes.POST_ORDER) {
       handleTraversalChange(postOrderTraverse);
-    } else if (selectedOption === TraversalTypes.BFS) {
+    } else if (selectedTraversal === TraversalTypes.BFS) {
       handleTraversalChange(bfs);
     }
-  }, [selectedOption, updateTraversalFlag]);
+  }, [selectedTraversal, updateTraversalFlag]);
 
+  /**
+   * Updates sorting speed according to selected sorting speed.
+   */
   useEffect(() => {
     if (sortingSpeedLabel === SortSpeeds.FAST) {
       setSortingSpeed(FAST_DELAY);
@@ -144,11 +161,17 @@ const Traverser = () => {
     }
   }, [sortingSpeedLabel]);
 
-  // Performs one step to avoid the appearance of delay
+  /**
+   * Performs one step to avoid the appearance of delay
+   */
   useEffect(() => {
     if (playing) performStep();
   }, [playing]);
 
+  /**
+   * If playing, performs steps in the traversal at the interval specified
+   * by the sorting speed delay.
+   */
   useEffect(() => {
     const intervalId = setInterval(() => {
       if (playing) performStep();
@@ -172,8 +195,8 @@ const Traverser = () => {
         modalOpen={modalOpen}
         setModalOpen={setModalOpen}
         numNodes={numNodes}
-        selectedOption={selectedOption}
-        setSelectedOption={setSelectedOption}
+        selectedTraversal={selectedTraversal}
+        setSelectedTraversal={setSelectedTraversal}
         sortingSpeedLabel={sortingSpeedLabel}
         setSortingSpeedLabel={setSortingSpeedLabel}
         setNumNodes={setNumNodes}
@@ -216,7 +239,7 @@ const Traverser = () => {
             }}
             variant="contained"
             onClick={() => {
-              buildTree();
+              newTree();
               setUpdateTraversalFlag(!updateTraversalFlag);
             }}
           >

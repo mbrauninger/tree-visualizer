@@ -9,3 +9,4 @@ export const DISPLAY_HEIGHT =
 export const FAST_DELAY = 50;
 export const MEDIUM_DELAY = 100;
 export const SLOW_DELAY = 1000;
+export const MAX_LISTED_TRAVERSAL_ITEMS = 30;

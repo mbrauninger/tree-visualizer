@@ -23,8 +23,8 @@ interface ModalProps {
   modalOpen: boolean;
   setModalOpen: Function;
   numNodes: number;
-  selectedOption: string;
-  setSelectedOption: Function;
+  selectedTraversal: string;
+  setSelectedTraversal: Function;
   sortingSpeedLabel: string;
   setSortingSpeedLabel: Function;
   setNumNodes: Function;
@@ -86,10 +86,10 @@ export const SettingsModal = (props: ModalProps) => {
                   left: 7,
                   marginBottom: 13,
                 }}
-                value={props.selectedOption}
+                value={props.selectedTraversal}
                 label="TraversalType"
                 onChange={(event) => {
-                  props.setSelectedOption(event.target.value);
+                  props.setSelectedTraversal(event.target.value);
                 }}
                 MenuProps={{
                   style: {
