@@ -39,12 +39,14 @@ const Traverser = () => {
     generateRandomTree(DEFAULT_NUM_NODES),
   );
   const [savedTree, setSavedTree] = useState<Node | null>(tree);
-  const [selectedTraversal, setSelectedTraversal] = useState(TraversalTypes.IN_ORDER);
+  const [selectedTraversal, setSelectedTraversal] = useState(
+    TraversalTypes.IN_ORDER,
+  );
 
   /**
    * Performs one step in the traversal algorithm and updates the listed traversal.
    * If state is finished, do nothing. If the traversal is on the last step, update
-   * state accordingly. 
+   * state accordingly.
    */
   const performStep = async () => {
     if (finished) return;
@@ -113,7 +115,7 @@ const Traverser = () => {
    * @param traversalFunc - The function that traverses the tree and builds the array to display output.
    */
   const handleTraversalChange = (traversalFunc: Function) => {
-    handleReset()
+    handleReset();
     setTraversal(traversalFunc(tree));
   };
 
@@ -126,7 +128,7 @@ const Traverser = () => {
    * be used when resetting.
    */
   function newTree() {
-    handleReset()
+    handleReset();
     let tree = generateRandomTree(numNodes);
     setTree(tree);
     setSavedTree(tree);

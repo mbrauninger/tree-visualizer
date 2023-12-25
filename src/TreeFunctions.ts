@@ -2,10 +2,21 @@ import { NODE_RADIUS, DISPLAY_WIDTH, DISPLAY_HEIGHT } from "./Constants";
 import { Node } from "./Types";
 import { Queue } from "queue-typescript";
 
+/**
+ * Generates a random integer between two values.
+ * @param min - The minimum value in the range.
+ * @param max - The maximum value in the range.
+ * @returns
+ */
 function randomIntFromInterval(min: number, max: number) {
   return Math.floor(Math.random() * (max - min + 1) + min);
 }
 
+/**
+ * Assigns numbers in order to a binary tree on a level-by-level basis.
+ * @param head - The head of the binary tree.
+ * @returns
+ */
 function bfsNumberAssign(head: Node) {
   if (!head) {
     return;
@@ -32,14 +43,22 @@ function bfsNumberAssign(head: Node) {
   }
 }
 
+/**
+ * Given a value and the head of the binary tree, search the tree and
+ * find the node with that value. Update the node's 'state' attribute
+ * according to the provided state parameter.
+ * @param head - The head of the binary tree.
+ * @param targetValue - The value of the node to be updated.
+ * @param state - The value to update the node's 'state' attribute to.
+ */
 export const updateTreeByValue = (
-  node: Node | null | undefined,
+  head: Node | null | undefined,
   targetValue: number,
   state: string,
 ) => {
-  if (!node) return null;
+  if (!head) return null;
 
-  const queue = new Queue<Node>(node);
+  const queue = new Queue<Node>(head);
 
   while (queue.length > 0) {
     const currentNode = queue.dequeue();
@@ -58,6 +77,12 @@ export const updateTreeByValue = (
   return null;
 };
 
+/**
+ * Generates a randomly structured binary tree according to the number
+ * of nodes specified by the 'size' parameter.
+ * @param size
+ * @returns
+ */
 export const generateRandomTree = (size: number) => {
   const yOffset = 30;
   const initialY = 25;
